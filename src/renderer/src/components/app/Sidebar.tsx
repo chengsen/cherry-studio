@@ -27,6 +27,7 @@ import {
   Palette,
   Settings,
   Sparkle,
+  StickyNote,
   Sun
 } from 'lucide-react'
 import type { FC } from 'react'
@@ -139,6 +140,7 @@ const MainMenus: FC = () => {
     knowledge: <FileSearch size={18} className="icon" />,
     files: <Folder size={18} className="icon" />,
     notes: <NotepadText size={18} className="icon" />,
+    memos: <StickyNote size={18} className="icon" />,
     code_tools: <Code size={18} className="icon" />,
     openclaw: <OpenClawSidebarIcon style={{ width: 18, height: 18 }} className="icon" />
   }
@@ -154,6 +156,7 @@ const MainMenus: FC = () => {
     files: '/files',
     code_tools: '/code',
     notes: '/notes',
+    memos: '/memos',
     openclaw: '/openclaw'
   }
 

@@ -1527,6 +1527,8 @@
     "set_custom_path": "设置自定义终端路径",
     "supported_providers": "支持的服务商",
     "terminal": "终端",
+    "terminal_loading": "检测终端中...",
+    "terminal_not_detected": "未检测到可用终端，将使用系统默认终端",
     "terminal_placeholder": "选择终端应用",
     "title": "代码工具",
     "update_options": "更新选项",
@@ -2236,6 +2238,40 @@
     "user_switched": "用户上下文已切换到 {{user}}",
     "users": "用户"
   },
+  "memos": {
+    "all_tags": "全部",
+    "daily_review": {
+      "title": "历史上的今天"
+    },
+    "date": {
+      "today": "今天",
+      "yesterday": "昨天"
+    },
+    "delete": "删除",
+    "delete_confirm": "确定要删除这条想法吗？",
+    "edit": "编辑",
+    "editing": "正在编辑",
+    "empty": "暂无想法，写下第一条吧",
+    "export_failed": "导出到笔记失败",
+    "export_success": "成功导出到笔记",
+    "export_to_notes": "导出到笔记",
+    "heatmap": {
+      "memos": "条想法",
+      "title": "记录热力图"
+    },
+    "placeholder": "记录一个想法...",
+    "related": {
+      "title": "相关想法"
+    },
+    "save": "保存",
+    "save_failed": "保存失败",
+    "save_success": "保存成功",
+    "search_placeholder": "搜索想法...",
+    "tag_stats": "[to be translated]:Tags",
+    "tags_placeholder": "添加标签，按回车确认",
+    "title": "想法",
+    "update": "更新"
+  },
   "message": {
     "agents": {
       "import": {
@@ -2649,6 +2685,7 @@
     "feature": {
       "chat": "回答此问题",
       "explanation": "解释说明",
+      "memo": "记录想法",
       "summary": "内容总结",
       "translate": "文本翻译"
     },
@@ -5861,6 +5898,7 @@
     "launchpad": "启动台",
     "mcp-servers": "MCP 服务器",
     "memories": "记忆",
+    "memos": "想法",
     "notes": "笔记",
     "openclaw": "OpenClaw",
     "paintings": "绘画",

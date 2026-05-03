@@ -1527,6 +1527,8 @@
     "set_custom_path": "Definir caminho personalizado do terminal",
     "supported_providers": "Provedores de serviço suportados",
     "terminal": "terminal",
+    "terminal_loading": "[to be translated]:Detecting terminals...",
+    "terminal_not_detected": "[to be translated]:No terminal detected, system default will be used",
     "terminal_placeholder": "Selecionar aplicativo de terminal",
     "title": "Ferramenta de código",
     "update_options": "Opções de atualização",
@@ -2236,6 +2238,40 @@
     "user_switched": "O contexto do usuário foi alterado para {{user}}",
     "users": "Usuários"
   },
+  "memos": {
+    "all_tags": "[to be translated]:All",
+    "daily_review": {
+      "title": "[to be translated]:On This Day"
+    },
+    "date": {
+      "today": "[to be translated]:Today",
+      "yesterday": "[to be translated]:Yesterday"
+    },
+    "delete": "[to be translated]:Delete",
+    "delete_confirm": "[to be translated]:Are you sure you want to delete this memo?",
+    "edit": "[to be translated]:Edit",
+    "editing": "[to be translated]:Editing",
+    "empty": "[to be translated]:No memos yet. Write your first thought!",
+    "export_failed": "[to be translated]:Failed to export to notes",
+    "export_success": "[to be translated]:Successfully exported to notes",
+    "export_to_notes": "[to be translated]:Export to Notes",
+    "heatmap": {
+      "memos": "[to be translated]:memos",
+      "title": "[to be translated]:Activity Heatmap"
+    },
+    "placeholder": "[to be translated]:Jot down a thought...",
+    "related": {
+      "title": "[to be translated]:Related Memos"
+    },
+    "save": "[to be translated]:Save",
+    "save_failed": "[to be translated]:Save failed",
+    "save_success": "[to be translated]:Saved successfully",
+    "search_placeholder": "[to be translated]:Search memos...",
+    "tag_stats": "[to be translated]:Tags",
+    "tags_placeholder": "[to be translated]:Add tags, press Enter to confirm",
+    "title": "[to be translated]:Memos",
+    "update": "[to be translated]:Update"
+  },
   "message": {
     "agents": {
       "import": {
@@ -2649,6 +2685,7 @@
     "feature": {
       "chat": "Responder a esta pergunta",
       "explanation": "Explicação",
+      "memo": "[to be translated]:Quick Memo",
       "summary": "Resumo do conteúdo",
       "translate": "Tradução de texto"
     },
@@ -5861,6 +5898,7 @@
     "launchpad": "Plataforma de Inicialização",
     "mcp-servers": "Servidores MCP",
     "memories": "Memórias",
+    "memos": "[to be translated]:Memos",
     "notes": "Notas",
     "openclaw": "OpenClaw",
     "paintings": "Pinturas",

@@ -3412,6 +3412,23 @@ const migrateConfig = {
       logger.error('migrate 206 error', error as Error)
       return state
     }
+  },
+  '207': (state: RootState) => {
+    try {
+      if (state.settings.sidebarIcons) {
+        if (
+          !state.settings.sidebarIcons.visible.includes('memos') &&
+          !state.settings.sidebarIcons.disabled.includes('memos')
+        ) {
+          state.settings.sidebarIcons.visible.push('memos')
+        }
+      }
+      logger.info('migrate 207 success')
+      return state
+    } catch (error) {
+      logger.error('migrate 207 error', error as Error)
+      return state
+    }
   }
 }
 

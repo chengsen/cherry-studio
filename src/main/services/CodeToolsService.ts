@@ -414,11 +414,30 @@ class CodeToolsService {
     try {
       if (isMac && terminal.bundleId) {
         // macOS: Check if application is installed via bundle ID with timeout
-        const { stdout } = await execAsync(`mdfind "kMDItemCFBundleIdentifier == '${terminal.bundleId}'"`, {
-          timeout: 3000
-        })
-        if (stdout.trim()) {
-          return terminal
+        try {
+          const { stdout } = await execAsync(`mdfind "kMDItemCFBundleIdentifier == '${terminal.bundleId}'"`, {
+            timeout: 3000
+          })
+          if (stdout.trim()) {
+            return terminal
+          }
+        } catch {
+          // mdfind failed, fallback to filesystem check
+        }
+
+        // Fallback: check common Application directories for the .app bundle
+        const appName = terminal.name.replace(/\s/g, '')
+        const possiblePaths = [
+          path.join('/Applications', `${appName}.app`),
+          path.join(os.homedir(), 'Applications', `${appName}.app`),
+          path.join('/Applications/Utilities', `${appName}.app`),
+          path.join('/System/Applications/Utilities', `${appName}.app`)
+        ]
+        for (const appPath of possiblePaths) {
+          if (fs.existsSync(appPath)) {
+            logger.info(`Found terminal ${terminal.id} at ${appPath} (mdfind fallback)`)
+            return terminal
+          }
         }
       } else if (isWin) {
         // Windows: Check terminal availability
@@ -582,6 +601,15 @@ class CodeToolsService {
       logger.info(
         `Terminal availability check completed in ${endTime - startTime}ms, found ${availableTerminals.length} terminals`
       )
+
+      // Fallback: on macOS, at least ensure Terminal is available since it's always present
+      if (isMac && availableTerminals.length === 0) {
+        const fallbackTerminal = terminalList.find((t) => t.id === terminalApps.systemDefault)
+        if (fallbackTerminal) {
+          availableTerminals.push(fallbackTerminal)
+          logger.warn('Terminal detection returned empty, falling back to system Terminal')
+        }
+      }
 
       // Cache the results
       this.terminalsCache = {

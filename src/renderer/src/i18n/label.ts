@@ -151,6 +151,7 @@ const titleKeyMap = {
   'mcp-servers': 'title.mcp-servers',
   memories: 'title.memories',
   notes: 'title.notes',
+  memos: 'title.memos',
   paintings: 'title.paintings',
   settings: 'title.settings',
   translate: 'title.translate',
@@ -195,6 +196,7 @@ const sidebarIconKeyMap = {
   files: 'files.title',
   code_tools: 'code.title',
   notes: 'notes.title',
+  memos: 'memos.title',
   openclaw: 'openclaw.title'
 } as const
 

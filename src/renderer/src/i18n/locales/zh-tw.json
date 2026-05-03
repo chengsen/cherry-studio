@@ -1527,6 +1527,8 @@
     "set_custom_path": "設定自訂終端機路徑",
     "supported_providers": "支援的供應商",
     "terminal": "終端機",
+    "terminal_loading": "檢測終端機中...",
+    "terminal_not_detected": "未檢測到可用終端機，將使用系統預設終端機",
     "terminal_placeholder": "選擇終端機應用程式",
     "title": "程式碼工具",
     "update_options": "更新選項",
@@ -2236,6 +2238,40 @@
     "user_switched": "使用者內容已切換至 {{user}}",
     "users": "使用者"
   },
+  "memos": {
+    "all_tags": "全部",
+    "daily_review": {
+      "title": "[to be translated]:On This Day"
+    },
+    "date": {
+      "today": "[to be translated]:Today",
+      "yesterday": "[to be translated]:Yesterday"
+    },
+    "delete": "刪除",
+    "delete_confirm": "確定要刪除這條想法嗎？",
+    "edit": "編輯",
+    "editing": "[to be translated]:Editing",
+    "empty": "暫無想法，寫下第一條吧",
+    "export_failed": "匯出到筆記失敗",
+    "export_success": "成功匯出到筆記",
+    "export_to_notes": "匯出到筆記",
+    "heatmap": {
+      "memos": "[to be translated]:memos",
+      "title": "[to be translated]:Activity Heatmap"
+    },
+    "placeholder": "記錄一個想法...",
+    "related": {
+      "title": "[to be translated]:Related Memos"
+    },
+    "save": "儲存",
+    "save_failed": "[to be translated]:Save failed",
+    "save_success": "[to be translated]:Saved successfully",
+    "search_placeholder": "搜尋想法...",
+    "tag_stats": "[to be translated]:Tags",
+    "tags_placeholder": "新增標籤，按 Enter 確認",
+    "title": "想法",
+    "update": "更新"
+  },
   "message": {
     "agents": {
       "import": {
@@ -2649,6 +2685,7 @@
     "feature": {
       "chat": "回答此問題",
       "explanation": "解釋說明",
+      "memo": "[to be translated]:Quick Memo",
       "summary": "內容總結",
       "translate": "文字翻譯"
     },
@@ -5861,6 +5898,7 @@
     "launchpad": "啟動台",
     "mcp-servers": "MCP 伺服器",
     "memories": "記憶",
+    "memos": "想法",
     "notes": "筆記",
     "openclaw": "OpenClaw",
     "paintings": "繪畫",

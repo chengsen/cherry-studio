@@ -33,6 +33,7 @@ import { useTranslation } from 'react-i18next'
 import styled from 'styled-components'
 
 import ChatWindow from '../chat/ChatWindow'
+import MemoWindow from '../memo/MemoWindow'
 import TranslateWindow from '../translate/TranslateWindow'
 import ClipboardPreview from './components/ClipboardPreview'
 import type { FeatureMenusRef } from './components/FeatureMenus'
@@ -47,7 +48,7 @@ const HomeWindow: FC<{ draggable?: boolean }> = ({ draggable = true }) => {
   const { theme } = useTheme()
   const { t } = useTranslation()
 
-  const [route, setRoute] = useState<'home' | 'chat' | 'translate' | 'summary' | 'explanation'>('home')
+  const [route, setRoute] = useState<'home' | 'chat' | 'translate' | 'summary' | 'explanation' | 'memo'>('home')
   const [isFirstMessage, setIsFirstMessage] = useState(true)
 
   const [userInputText, setUserInputText] = useState('')
@@ -574,6 +575,15 @@ const HomeWindow: FC<{ draggable?: boolean }> = ({ draggable = true }) => {
       return (
         <Container style={{ backgroundColor }} $draggable={draggable}>
           <TranslateWindow text={referenceText} />
+          <Divider style={{ margin: '10px 0' }} />
+          <Footer key="footer" {...baseFooterProps} />
+        </Container>
+      )
+
+    case 'memo':
+      return (
+        <Container style={{ backgroundColor }} $draggable={draggable}>
+          <MemoWindow onSaved={() => setRoute('home')} />
           <Divider style={{ margin: '10px 0' }} />
           <Footer key="footer" {...baseFooterProps} />
         </Container>

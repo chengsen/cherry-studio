@@ -5,6 +5,7 @@ import type { GenerateImagesConfig, GroundingMetadata, PersonGeneration } from '
 import type { CSSProperties } from 'react'
 
 export * from './file'
+export * from './memo'
 export * from './note'
 
 import * as z from 'zod'
@@ -690,6 +691,7 @@ export type SidebarIcon =
   | 'files'
   | 'code_tools'
   | 'notes'
+  | 'memos'
   | 'openclaw'
 
 export type ExternalToolResult = {

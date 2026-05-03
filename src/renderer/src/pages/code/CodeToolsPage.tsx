@@ -2,6 +2,7 @@ import { AiProvider } from '@renderer/aiCore'
 import AnthropicProviderListPopover from '@renderer/components/AnthropicProviderListPopover'
 import { Navbar, NavbarCenter } from '@renderer/components/app/Navbar'
 import ModelSelector from '@renderer/components/ModelSelector'
+import Scrollbar from '@renderer/components/Scrollbar'
 import { isMac, isWin } from '@renderer/config/constant'
 import { isEmbeddingModel, isRerankModel, isTextToImageModel } from '@renderer/config/models'
 import { useCodeTools } from '@renderer/hooks/useCodeTools'
@@ -17,7 +18,7 @@ import type { TerminalConfig } from '@shared/config/constant'
 import { codeTools, terminalApps } from '@shared/config/constant'
 import { CLAUDE_OFFICIAL_SUPPORTED_PROVIDERS, isSiliconAnthropicCompatibleModel } from '@shared/config/providers'
 import { Alert, Button, Checkbox, Input, Select, Space, Tooltip } from 'antd'
-import { Download, FolderOpen, Terminal, X } from 'lucide-react'
+import { Download, FolderOpen, Plus, Terminal, Trash2 } from 'lucide-react'
 import type { FC } from 'react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -32,6 +33,11 @@ import {
 } from '.'
 
 const logger = loggerService.withContext('CodeToolsPage')
+
+const getDirName = (dir: string): string => {
+  const parts = dir.split(/[/\\]/)
+  return parts[parts.length - 1] || dir
+}
 
 const CodeToolsPage: FC = () => {
   const { t } = useTranslation()
@@ -52,7 +58,7 @@ const CodeToolsPage: FC = () => {
     setEnvVars,
     setCurrentDir,
     removeDir,
-    selectFolder
+    addDir
   } = useCodeTools()
   const { setTimeoutTimer } = useTimer()
 
@@ -170,8 +176,8 @@ const CodeToolsPage: FC = () => {
   }
 
   // 处理删除目录
-  const handleRemoveDirectory = (directory: string, e: React.MouseEvent) => {
-    e.stopPropagation()
+  const handleRemoveDirectory = (directory: string, e?: React.MouseEvent) => {
+    e?.stopPropagation()
     removeDir(directory)
   }
 
@@ -345,6 +351,19 @@ const CodeToolsPage: FC = () => {
     }
   }
 
+  // 添加目录
+  const handleAddDirectory = useCallback(async () => {
+    try {
+      const folderPath = await window.api.file.selectFolder()
+      if (folderPath) {
+        addDir(folderPath)
+        setCurrentDir(folderPath)
+      }
+    } catch (error) {
+      logger.error('选择文件夹失败:', error as Error)
+    }
+  }, [addDir, setCurrentDir])
+
   // 页面加载时检查 bun 安装状态
   useEffect(() => {
     void checkBunInstallation()
@@ -361,204 +380,201 @@ const CodeToolsPage: FC = () => {
         <NavbarCenter style={{ borderRight: 'none' }}>{t('code.title')}</NavbarCenter>
       </Navbar>
       <ContentContainer id="content-container">
-        <MainContent>
-          <Title>{t('code.title')}</Title>
-          <Description>{t('code.description')}</Description>
+        {/* 左侧工作目录侧边栏 */}
+        <DirectorySidebar>
+          <SidebarHeader>
+            <SidebarTitle>{t('code.working_directory')}</SidebarTitle>
+            <Tooltip title={t('code.select_folder')}>
+              <AddButton onClick={handleAddDirectory}>
+                <Plus size={14} />
+              </AddButton>
+            </Tooltip>
+          </SidebarHeader>
+          <DirectoryList>
+            {directories.length === 0 && <EmptyText>{t('code.folder_placeholder')}</EmptyText>}
+            {directories.map((dir) => {
+              const isActive = dir === currentDirectory
+              return (
+                <DirectoryItem key={dir} $active={isActive} onClick={() => setCurrentDir(dir)}>
+                  <DirectoryName title={dir}>
+                    <FolderOpen size={14} style={{ flexShrink: 0, opacity: 0.6 }} />
+                    <span className="name">{getDirName(dir)}</span>
+                  </DirectoryName>
+                  <DeleteButton onClick={(e) => handleRemoveDirectory(dir, e)} title={t('common.delete')}>
+                    <Trash2 size={12} />
+                  </DeleteButton>
+                </DirectoryItem>
+              )
+            })}
+          </DirectoryList>
+        </DirectorySidebar>
 
-          {/* Bun 安装状态提示 */}
-          {!isBunInstalled && (
-            <BunInstallAlert>
-              <Alert
-                type="warning"
-                banner
-                style={{ borderRadius: 'var(--list-item-border-radius)' }}
-                message={
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center'
-                    }}>
-                    <span>{t('code.bun_required_message')}</span>
-                    <Button
-                      type="primary"
-                      size="small"
-                      icon={<Download size={14} />}
-                      onClick={handleInstallBun}
-                      loading={isInstallingBun}
-                      disabled={isInstallingBun}>
-                      {isInstallingBun ? t('code.installing_bun') : t('code.install_bun')}
-                    </Button>
-                  </div>
-                }
-              />
-            </BunInstallAlert>
-          )}
+        {/* 右侧主内容区 */}
+        <MainScrollArea>
+          <MainContent>
+            <Title>{t('code.title')}</Title>
+            <Description>{t('code.description')}</Description>
 
-          <SettingsPanel>
-            <SettingsItem>
-              <div className="settings-label">{t('code.cli_tool')}</div>
-              <Select
-                style={{ width: '100%' }}
-                placeholder={t('code.cli_tool_placeholder')}
-                value={selectedCliTool}
-                onChange={setCliTool}
-                options={CLI_TOOLS}
-              />
-            </SettingsItem>
-
-            {selectedCliTool !== codeTools.githubCopilotCli && (
-              <SettingsItem>
-                <div className="settings-label">
-                  {t('code.model')}
-                  {selectedCliTool === 'claude-code' && <AnthropicProviderListPopover />}
-                </div>
-                <ModelSelector
-                  providers={availableProviders}
-                  predicate={modelPredicate}
-                  style={{ width: '100%' }}
-                  placeholder={t('code.model_placeholder')}
-                  value={selectedModel ? getModelUniqId(selectedModel) : undefined}
-                  onChange={handleModelChange}
-                  allowClear
-                />
-              </SettingsItem>
-            )}
-
-            <SettingsItem>
-              <div className="settings-label">{t('code.working_directory')}</div>
-              <Space.Compact style={{ width: '100%', display: 'flex' }}>
-                <Select
-                  style={{ flex: 1, width: 480 }}
-                  placeholder={t('code.folder_placeholder')}
-                  value={currentDirectory || undefined}
-                  onChange={setCurrentDir}
-                  allowClear
-                  showSearch
-                  filterOption={(input, option) => {
-                    const label = typeof option?.label === 'string' ? option.label : String(option?.value || '')
-                    return label.toLowerCase().includes(input.toLowerCase())
-                  }}
-                  options={directories.map((dir) => ({ value: dir, label: dir }))}
-                  optionRender={(option) => (
+            {/* Bun 安装状态提示 */}
+            {!isBunInstalled && (
+              <BunInstallAlert>
+                <Alert
+                  type="warning"
+                  banner
+                  style={{ borderRadius: 'var(--list-item-border-radius)' }}
+                  message={
                     <div
                       style={{
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center'
                       }}>
-                      <span
-                        style={{
-                          flex: 1,
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                          minWidth: 0
-                        }}>
-                        {option.value}
-                      </span>
-                      <X
-                        size={14}
-                        style={{
-                          marginLeft: 8,
-                          cursor: 'pointer',
-                          color: '#999'
-                        }}
-                        onClick={(e) => handleRemoveDirectory(option.value as string, e)}
-                      />
+                      <span>{t('code.bun_required_message')}</span>
+                      <Button
+                        type="primary"
+                        size="small"
+                        icon={<Download size={14} />}
+                        onClick={handleInstallBun}
+                        loading={isInstallingBun}
+                        disabled={isInstallingBun}>
+                        {isInstallingBun ? t('code.installing_bun') : t('code.install_bun')}
+                      </Button>
                     </div>
-                  )}
+                  }
                 />
-                <Button onClick={selectFolder} style={{ width: 120 }}>
-                  {t('code.select_folder')}
-                </Button>
-              </Space.Compact>
-            </SettingsItem>
+              </BunInstallAlert>
+            )}
 
-            <SettingsItem>
-              <div className="settings-label">{t('code.environment_variables')}</div>
-              <Input.TextArea
-                placeholder={`KEY1=value1\nKEY2=value2`}
-                value={environmentVariables}
-                onChange={(e) => setEnvVars(e.target.value)}
-                rows={2}
-                style={{ fontFamily: 'monospace' }}
-              />
-              <div
-                style={{
-                  fontSize: 12,
-                  color: 'var(--color-text-3)',
-                  marginTop: 4
-                }}>
-                {t('code.env_vars_help')}
-              </div>
-            </SettingsItem>
-
-            {/* 终端选择 (macOS 和 Windows) */}
-            {(isMac || isWin) && availableTerminals.length > 0 && (
+            <SettingsPanel>
               <SettingsItem>
-                <div className="settings-label">{t('code.terminal')}</div>
-                <Space.Compact style={{ width: '100%', display: 'flex' }}>
-                  <Select
-                    style={{ flex: 1 }}
-                    placeholder={t('code.terminal_placeholder')}
-                    value={selectedTerminal}
-                    onChange={setTerminal}
-                    loading={isLoadingTerminals}
-                    options={availableTerminals.map((terminal) => ({
-                      value: terminal.id,
-                      label: terminal.name
-                    }))}
+                <div className="settings-label">{t('code.cli_tool')}</div>
+                <Select
+                  style={{ width: '100%' }}
+                  placeholder={t('code.cli_tool_placeholder')}
+                  value={selectedCliTool}
+                  onChange={setCliTool}
+                  options={CLI_TOOLS}
+                />
+              </SettingsItem>
+
+              {selectedCliTool !== codeTools.githubCopilotCli && (
+                <SettingsItem>
+                  <div className="settings-label">
+                    {t('code.model')}
+                    {selectedCliTool === 'claude-code' && <AnthropicProviderListPopover />}
+                  </div>
+                  <ModelSelector
+                    providers={availableProviders}
+                    predicate={modelPredicate}
+                    style={{ width: '100%' }}
+                    placeholder={t('code.model_placeholder')}
+                    value={selectedModel ? getModelUniqId(selectedModel) : undefined}
+                    onChange={handleModelChange}
+                    allowClear
                   />
-                  {/* Show custom path button for Windows terminals except cmd/powershell */}
-                  {isWin &&
-                    selectedTerminal &&
-                    selectedTerminal !== terminalApps.cmd &&
-                    selectedTerminal !== terminalApps.powershell &&
-                    selectedTerminal !== terminalApps.windowsTerminal && (
-                      <Tooltip title={terminalCustomPaths[selectedTerminal] || t('code.set_custom_path')}>
-                        <Button icon={<FolderOpen size={16} />} onClick={() => handleSetCustomPath(selectedTerminal)} />
-                      </Tooltip>
-                    )}
-                </Space.Compact>
-                {isWin &&
-                  selectedTerminal &&
-                  selectedTerminal !== terminalApps.cmd &&
-                  selectedTerminal !== terminalApps.powershell &&
-                  selectedTerminal !== terminalApps.windowsTerminal && (
+                </SettingsItem>
+              )}
+
+              <SettingsItem>
+                <div className="settings-label">{t('code.environment_variables')}</div>
+                <Input.TextArea
+                  placeholder={`KEY1=value1\nKEY2=value2`}
+                  value={environmentVariables}
+                  onChange={(e) => setEnvVars(e.target.value)}
+                  rows={2}
+                  style={{ fontFamily: 'monospace' }}
+                />
+                <div
+                  style={{
+                    fontSize: 12,
+                    color: 'var(--color-text-3)',
+                    marginTop: 4
+                  }}>
+                  {t('code.env_vars_help')}
+                </div>
+              </SettingsItem>
+
+              {/* 终端选择 (macOS 和 Windows) */}
+              {(isMac || isWin) && (
+                <SettingsItem>
+                  <div className="settings-label">{t('code.terminal')}</div>
+                  {availableTerminals.length > 0 ? (
+                    <>
+                      <Space.Compact style={{ width: '100%', display: 'flex' }}>
+                        <Select
+                          style={{ flex: 1 }}
+                          placeholder={t('code.terminal_placeholder')}
+                          value={selectedTerminal}
+                          onChange={setTerminal}
+                          loading={isLoadingTerminals}
+                          options={availableTerminals.map((terminal) => ({
+                            value: terminal.id,
+                            label: terminal.name
+                          }))}
+                        />
+                        {/* Show custom path button for Windows terminals except cmd/powershell */}
+                        {isWin &&
+                          selectedTerminal &&
+                          selectedTerminal !== terminalApps.cmd &&
+                          selectedTerminal !== terminalApps.powershell &&
+                          selectedTerminal !== terminalApps.windowsTerminal && (
+                            <Tooltip title={terminalCustomPaths[selectedTerminal] || t('code.set_custom_path')}>
+                              <Button
+                                icon={<FolderOpen size={16} />}
+                                onClick={() => handleSetCustomPath(selectedTerminal)}
+                              />
+                            </Tooltip>
+                          )}
+                      </Space.Compact>
+                      {isWin &&
+                        selectedTerminal &&
+                        selectedTerminal !== terminalApps.cmd &&
+                        selectedTerminal !== terminalApps.powershell &&
+                        selectedTerminal !== terminalApps.windowsTerminal && (
+                          <div
+                            style={{
+                              fontSize: 12,
+                              color: 'var(--color-text-3)',
+                              marginTop: 4
+                            }}>
+                            {terminalCustomPaths[selectedTerminal]
+                              ? `${t('code.custom_path')}: ${terminalCustomPaths[selectedTerminal]}`
+                              : t('code.custom_path_required')}
+                          </div>
+                        )}
+                    </>
+                  ) : (
                     <div
                       style={{
                         fontSize: 12,
-                        color: 'var(--color-text-3)',
-                        marginTop: 4
+                        color: 'var(--color-text-3)'
                       }}>
-                      {terminalCustomPaths[selectedTerminal]
-                        ? `${t('code.custom_path')}: ${terminalCustomPaths[selectedTerminal]}`
-                        : t('code.custom_path_required')}
+                      {isLoadingTerminals ? t('code.terminal_loading') : t('code.terminal_not_detected')}
                     </div>
                   )}
+                </SettingsItem>
+              )}
+
+              <SettingsItem>
+                <div className="settings-label">{t('code.update_options')}</div>
+                <Checkbox checked={autoUpdateToLatest} onChange={(e) => setAutoUpdateToLatest(e.target.checked)}>
+                  {t('code.auto_update_to_latest')}
+                </Checkbox>
               </SettingsItem>
-            )}
+            </SettingsPanel>
 
-            <SettingsItem>
-              <div className="settings-label">{t('code.update_options')}</div>
-              <Checkbox checked={autoUpdateToLatest} onChange={(e) => setAutoUpdateToLatest(e.target.checked)}>
-                {t('code.auto_update_to_latest')}
-              </Checkbox>
-            </SettingsItem>
-          </SettingsPanel>
-
-          <Button
-            type="primary"
-            icon={<Terminal size={16} />}
-            size="large"
-            onClick={handleLaunch}
-            loading={isLaunching}
-            disabled={!canLaunch || !isBunInstalled}
-            block>
-            {isLaunching ? t('code.launching') : t('code.launch.label')}
-          </Button>
-        </MainContent>
+            <Button
+              type="primary"
+              icon={<Terminal size={16} />}
+              size="large"
+              onClick={handleLaunch}
+              loading={isLaunching}
+              disabled={!canLaunch || !isBunInstalled}
+              block>
+              {isLaunching ? t('code.launching') : t('code.launch.label')}
+            </Button>
+          </MainContent>
+        </MainScrollArea>
       </ContentContainer>
     </Container>
   )
@@ -572,6 +588,128 @@ const Container = styled.div`
 
 const ContentContainer = styled.div`
   display: flex;
+  flex: 1;
+  flex-direction: row;
+  overflow: hidden;
+`
+
+const DirectorySidebar = styled.div`
+  display: flex;
+  flex-direction: column;
+  width: var(--assistants-width);
+  min-width: var(--assistants-width);
+  height: calc(100vh - var(--navbar-height));
+  background-color: var(--color-background);
+  border-right: 0.5px solid var(--color-border);
+  overflow: hidden;
+`
+
+const SidebarHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 0.5px solid var(--color-border);
+  -webkit-app-region: no-drag;
+`
+
+const SidebarTitle = styled.div`
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-1);
+`
+
+const AddButton = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-2);
+  cursor: pointer;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: var(--color-background-mute);
+    color: var(--color-text-1);
+  }
+`
+
+const DirectoryList = styled(Scrollbar)`
+  flex: 1;
+  padding: 6px;
+  overflow-y: auto;
+`
+
+const DirectoryItem = styled.div<{ $active: boolean }>`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.15s;
+  margin-bottom: 2px;
+  background-color: ${({ $active }) => ($active ? 'var(--color-background-mute)' : 'transparent')};
+
+  &:hover {
+    background-color: var(--color-background-mute);
+  }
+`
+
+const DirectoryName = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+
+  .name {
+    font-size: 13px;
+    color: var(--color-text-1);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+`
+
+const DeleteButton = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-3);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s, background-color 0.15s;
+  flex-shrink: 0;
+
+  ${DirectoryItem}:hover & {
+    opacity: 1;
+  }
+
+  &:hover {
+    background-color: rgba(255, 0, 0, 0.1);
+    color: var(--color-error);
+  }
+`
+
+const EmptyText = styled.div`
+  font-size: 12px;
+  color: var(--color-text-3);
+  text-align: center;
+  padding: 20px 12px;
+`
+
+const MainScrollArea = styled.div`
   flex: 1;
   overflow-y: auto;
   padding: 20px 0;
